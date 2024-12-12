@@ -2,6 +2,11 @@ from .matrix import Matrix
 
 
 def input_matrix(type: type = float) -> Matrix:
+    """
+    Функция для ввода матрицы
+    :param type: один ищ Numeric типов
+    :return:
+    """
     if type != float and type != int and type != complex:
         raise TypeError("тип должен быть одним из float,  int, complex")
 
