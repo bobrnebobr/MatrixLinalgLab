@@ -152,5 +152,23 @@ class Matrix:
 
         return trace
 
-    def determinant(self):
-        pass
+    def pop(self, row_key: int, col_key: int) -> 'Matrix':
+        if self.shape[0] == 0 or self.shape[1] == 0:
+            raise Exception("Нечего удалять буквально")
+
+        new_shape = [self.shape[0] - 1, self.shape[1] - 1]
+        new_matrix = Matrix(new_shape[0], new_shape[1])
+
+        for i in range(1, self.shape[0] + 1):
+            for j in range(1, self.shape[1] + 1):
+                if i != row_key and j != col_key:
+                    if i < row_key and j < col_key:
+                        new_matrix[i][j] = self[i][j]
+                    elif i > row_key and j < col_key:
+                        new_matrix[i - 1][j] = self[i][j]
+                    elif i < row_key and j > col_key:
+                        new_matrix[i][j - 1] = self[i][j]
+                    else:
+                        new_matrix[i - 1][j - 1] = self[i][j]
+
+        return new_matrix

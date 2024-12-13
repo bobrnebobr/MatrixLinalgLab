@@ -22,3 +22,5 @@ if __name__ == '__main__':
     print(7 * matrix)
     print("-----------")
     print((matrix * matrix_2).trace())
+    print("-------------")
+    print(matrix.pop(3, 2))
