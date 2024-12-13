@@ -22,3 +22,7 @@ def input_matrix(type: type = float) -> Matrix:
             matrix[i][j] = type(data[i - 1][j - 1])
 
     return matrix
+
+
+def determinant() -> None:
+    pass
