@@ -19,18 +19,19 @@ def input_matrix(type: type = float) -> Matrix:
 
     for i in range(1, n + 1):
         for j in range(1, m + 1):
-            matrix[i][j] = type(data[i - 1][j - 1])
+            matrix[i, j] = type(data[i - 1][j - 1])
 
     return matrix
+
 
 def calculate_determinant(matrix: Matrix):
     if matrix.shape[0] == matrix.shape[1]:
         if matrix.shape[0] == 1:
-            return matrix[1][1]
+            return matrix[1, 1]
         else:
             det = 0
             for i in range(1, matrix.shape[1]+1):
-                det += ((-1) ** (i+1)) * matrix[1][i] * calculate_determinant(matrix.pop(1, i))
+                det += ((-1) ** (i+1)) * matrix[1, i] * calculate_determinant(matrix.pop(1, i))
             return det
 
 
@@ -38,6 +39,3 @@ def determinant() -> None:
     matrix = input_matrix()
     if matrix.shape[0] == matrix.shape[1]:
         return calculate_determinant(matrix)
-
-    # количество строк matrix.shape[0]
-    # количество столбцов matrix.shape[1]
