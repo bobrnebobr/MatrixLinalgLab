@@ -129,10 +129,13 @@ class Matrix:
         """
         if isinstance(other, Matrix):
             return self.__multiply_two_matrices(other)
-        if isinstance(other, numeric):
+        if isinstance(other, int) or isinstance(other, float) or isinstance(other, complex):
             return self.__multiply_by_number(other)
 
         raise Exception("Умножение на данный объект некорректно (тип)")
+
+    def __rmul__(self, other) -> 'Matrix':
+        return self * other
 
     def trace(self):
         """

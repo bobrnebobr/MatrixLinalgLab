@@ -18,5 +18,7 @@ if __name__ == '__main__':
     print(matrix_2)
     print("-----------")
     print(matrix * matrix_2)
+    print("-------------")
+    print(7 * matrix)
     print("-----------")
     print((matrix * matrix_2).trace())
