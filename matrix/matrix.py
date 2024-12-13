@@ -2,11 +2,11 @@ import typing as tp
 from copy import copy
 
 from .common import numeric
-from .matrix_row import MatrixRow
 
 
 class Matrix:
     """Класс матрицы"""
+
     def __init__(self, n: int, m: int):
         """
         Инициализация класса
@@ -14,39 +14,76 @@ class Matrix:
         :param m: количество столбцов
         """
         self.shape = (n, m)
-        self.matrix: tp.Dict[int, MatrixRow] = {i: MatrixRow({}, length=m) for i in range(1, n + 1)}
+        self.values = []
+        self.row_indices = []
+        self.col_indices = []
 
-    def __getitem__(self, key: int) -> MatrixRow:
+    def __getitem__(self, key: tp.Tuple[int, int]) -> numeric:
         """
         Получение строки матрицы
-        :param key: индекс строки матрицы
+        :param row_key: индекс строки матрицы
+        :param col_key: индекс столбца матрицы
         :return: строка матрицы по ключу
         """
-        if key > self.shape[0] or key <= 0:
-            raise KeyError("Неправильный ключ")
+        row_key, col_key = key
 
-        if key in self.matrix:
-            return self.matrix[key]
-        else:
-            return MatrixRow({}, self.shape[1])
+        if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
+            raise KeyError("Index out of range")
 
-    def __setitem__(self, key: int, value: MatrixRow):
+        possible_cols = {}
+        for i, row_indice in enumerate(self.row_indices):
+            if row_indice == row_key:
+                possible_cols[self.col_indices[i]] = i
+
+        if col_key not in possible_cols:
+            return 0
+        return self.values[possible_cols[col_key]]
+
+    def sparse_index(self, row_key, col_key) -> int:
+        if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
+            raise KeyError("Index out of range")
+
+        possible_cols = {}
+        for i, row_indice in enumerate(self.row_indices):
+            if row_indice == row_key:
+                possible_cols[self.col_indices[i]] = i
+
+        if col_key not in possible_cols:
+            return -1
+        return possible_cols[col_key]
+
+    def __setitem__(self, key: tp.Tuple[int, int], value: numeric) -> None:
         """
         Задать строку матрицы явно
         :param key:
         :param value:
         :return:
         """
-        if key > self.shape[0] or key <= 0:
-            raise KeyError("Неправильный ключ")
+        row_key, col_key = key
 
-        self.matrix[key] = value
+        if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
+            raise KeyError("Index out of range")
+
+        index = self.sparse_index(row_key, col_key)
+
+        if index == -1:
+            self.row_indices.append(row_key)
+            self.col_indices.append(col_key)
+            self.values.append(value)
+        else:
+            self.values[index] = value
 
     def __str__(self) -> str:
         """
         Строковое представление матрицы для вывода в консоль
         """
-        return "\n".join([str(self.matrix[row]) for row in self.matrix])
+        result = []
+        for i in range(1, self.shape[0] + 1):
+            result.append([])
+            for j in range(1, self.shape[1] + 1):
+                result[-1].append(str(self[i, j]))
+
+        return "\n".join(["\t".join(row) for row in result])
 
     def __add__(self, other: 'Matrix') -> 'Matrix':
         """
@@ -61,7 +98,7 @@ class Matrix:
 
         for i in range(1, other.shape[0] + 1):
             for j in range(1, other.shape[1] + 1):
-                matrix_sum[i][j] = self[i][j] + other[i][j]
+                matrix_sum[i, j] = self[i, j] + other[i, j]
 
         return matrix_sum
 
@@ -71,12 +108,8 @@ class Matrix:
         """
         new_matrix = Matrix(self.shape[0], self.shape[1])
 
-        for i in self.matrix:
-            if not self.matrix[i]:
-                continue
-
-            for j in self.matrix[i].values:
-                new_matrix[i][j] = -self.matrix[i][j]
+        for i in range(len(self.values)):
+            new_matrix[self.row_indices[i], self.col_indices[i]] = -self.values[i]
 
         return new_matrix
 
@@ -98,7 +131,7 @@ class Matrix:
 
         for i in range(1, self.shape[0] + 1):
             for j in range(1, self.shape[1] + 1):
-                matrix_copy[i][j] = self[i][j] * number
+                matrix_copy[i, j] = self[i, j] * number
 
         return matrix_copy
 
@@ -116,8 +149,9 @@ class Matrix:
         for row_index_first_matrix in range(1, self.shape[0] + 1):
             for col_index_second_matrix in range(1, other.shape[1] + 1):
                 for multiply_index in range(1, self.shape[1] + 1):
-                    multiplied_matrix[row_index_first_matrix][col_index_second_matrix] += (
-                            self[row_index_first_matrix][multiply_index] * other[multiply_index][col_index_second_matrix])
+                    multiplied_matrix[row_index_first_matrix, col_index_second_matrix] += (
+                            self[row_index_first_matrix, multiply_index] * other[multiply_index,
+                    col_index_second_matrix])
 
         return multiplied_matrix
 
@@ -148,7 +182,7 @@ class Matrix:
         trace = 0
 
         for i in range(1, self.shape[0] + 1):
-            trace += self[i][i]
+            trace += self[i, i]
 
         return trace
 
@@ -163,12 +197,12 @@ class Matrix:
             for j in range(1, self.shape[1] + 1):
                 if i != row_key and j != col_key:
                     if i < row_key and j < col_key:
-                        new_matrix[i][j] = self[i][j]
+                        new_matrix[i, j] = self[i, j]
                     elif i > row_key and j < col_key:
-                        new_matrix[i - 1][j] = self[i][j]
+                        new_matrix[i - 1, j] = self[i, j]
                     elif i < row_key and j > col_key:
-                        new_matrix[i][j - 1] = self[i][j]
+                        new_matrix[i, j - 1] = self[i, j]
                     else:
-                        new_matrix[i - 1][j - 1] = self[i][j]
+                        new_matrix[i - 1, j - 1] = self[i, j]
 
         return new_matrix
