@@ -24,3 +24,5 @@ if __name__ == '__main__':
     print((matrix * matrix_2).trace())
     print("-------------")
     print(matrix.pop(3, 2))
+    print("-------------")
+    print(determinant())
