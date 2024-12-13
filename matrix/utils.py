@@ -4,7 +4,7 @@ from .matrix import Matrix
 def input_matrix(type: type = float) -> Matrix:
     """
     Функция для ввода матрицы
-    :param type: один ищ Numeric типов
+    :param type: один из Numeric типов
     :return:
     """
     if type != float and type != int and type != complex:
@@ -23,6 +23,21 @@ def input_matrix(type: type = float) -> Matrix:
 
     return matrix
 
+def calculate_determinant(matrix: Matrix):
+    if matrix.shape[0] == matrix.shape[1]:
+        if matrix.shape[0] == 1:
+            return matrix[1][1]
+        else:
+            det = 0
+            for i in range(1, matrix.shape[1]+1):
+                det += ((-1) ** (i+1)) * matrix[1][i] * calculate_determinant(matrix.pop(1, i))
+            return det
+
 
 def determinant() -> None:
-    pass
+    matrix = input_matrix()
+    if matrix.shape[0] == matrix.shape[1]:
+        return calculate_determinant(matrix)
+
+    # количество строк matrix.shape[0]
+    # количество столбцов matrix.shape[1]
