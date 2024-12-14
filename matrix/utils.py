@@ -39,3 +39,7 @@ def determinant() -> None:
     matrix = input_matrix()
     if matrix.shape[0] == matrix.shape[1]:
         return calculate_determinant(matrix)
+
+def has_inverse(matrix: Matrix) -> str:
+    det = calculate_determinant(matrix)
+    return "Да, матрица имеет себе обратную" if det != 0 else "Нет, матрица не имеет себе обратную"
