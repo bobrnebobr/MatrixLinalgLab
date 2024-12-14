@@ -67,10 +67,19 @@ class Matrix:
         index = self.sparse_index(row_key, col_key)
 
         if index == -1:
+            if value == 0:
+                return
+
             self.row_indices.append(row_key)
             self.col_indices.append(col_key)
             self.values.append(value)
         else:
+            if value == 0:
+                self.row_indices.pop(index)
+                self.col_indices.pop(index)
+                self.values.pop(index)
+                return
+
             self.values[index] = value
 
     def __str__(self) -> str:
