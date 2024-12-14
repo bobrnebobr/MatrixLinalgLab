@@ -6,7 +6,7 @@ from matrix.utils import *
 
 class TestUtils(unittest.TestCase):
 
-    def test_determ1(self): #Тест инициализации матрицы
+    def test_determ1(self):
         n, m = 2, 2
         matrix = Matrix(n, m)
         data = [[1, 2], [3, 4]]
@@ -18,7 +18,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(calculate_determinant(matrix), -2.0)
         self.assertEqual(has_inverse(matrix), "Да, матрица имеет себе обратную")
 
-    def test_determ2(self): #Тест инициализации матрицы
+    def test_determ2(self):
         n, m = 3, 3
         matrix = Matrix(n, m)
         data = [[1, 2, 3], [0, 1, 4], [5, 6, 0]]
@@ -30,7 +30,7 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(calculate_determinant(matrix), 1.0)
         self.assertEqual(has_inverse(matrix), "Да, матрица имеет себе обратную")
 
-    def test_determ2(self): #Тест инициализации матрицы
+    def test_determ2(self):
         n, m = 4, 4
         matrix = Matrix(n, m)
         data = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
