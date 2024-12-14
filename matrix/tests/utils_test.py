@@ -33,12 +33,12 @@ class TestUtils(unittest.TestCase):
     def test_determ2(self): #Тест инициализации матрицы
         n, m = 4, 4
         matrix = Matrix(n, m)
-        data = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        data = [[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 
         for i in range(1, n + 1):
             for j in range(1, m + 1):
                 matrix[i, j] = float(data[i - 1][j - 1])
 
-        self.assertEqual(calculate_determinant(matrix), 1.0)
+        self.assertEqual(calculate_determinant(matrix), 0)
         self.assertEqual(has_inverse(matrix), "Нет, матрица не имеет себе обратную")
 

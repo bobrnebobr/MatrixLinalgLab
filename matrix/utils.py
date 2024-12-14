@@ -38,7 +38,7 @@ def calculate_determinant(matrix: Matrix):
 def determinant() -> None:
     matrix = input_matrix()
     if matrix.shape[0] == matrix.shape[1]:
-        return calculate_determinant(matrix)
+        return (calculate_determinant(matrix), has_inverse(matrix))
 
 def has_inverse(matrix: Matrix) -> str:
     det = calculate_determinant(matrix)
