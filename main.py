@@ -7,14 +7,20 @@ if __name__ == '__main__':
     print("-----------")
     print(matrix)
     print("-----------")
-    print(matrix[1, 2])
-    print("-----------")
+    # print(matrix[1, 2])
+    # print("-----------")
+    # print(matrix[3, 2])
+    # print("-----------")
+    # matrix[3, 3] = 7
+    # matrix[3, 1] = 888
+    # matrix[1, 1] = 4
+    # print(matrix)
 
     matrix_2 = input_matrix()
     print("------------")
-    print(matrix - matrix_2)
+    print(matrix + matrix_2)
     print("-----------")
-    matrix_2[2, 3] += 5
+    # matrix_2[2, 2] += 5
     print(matrix_2)
     print("-----------")
     print(matrix * matrix_2)

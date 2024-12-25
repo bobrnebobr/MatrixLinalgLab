@@ -14,9 +14,10 @@ class Matrix:
         :param m: количество столбцов
         """
         self.shape = (n, m)
-        self.values = []
-        self.row_indices = []
-        self.col_indices = []
+
+        self.data = []
+        self.indices = []
+        self.indptr = [1 for _ in range(self.shape[0] + 1)]
 
     def __getitem__(self, key: tp.Tuple[int, int]) -> numeric:
         """
@@ -30,57 +31,51 @@ class Matrix:
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        possible_cols = {}
-        for i, row_indice in enumerate(self.row_indices):
-            if row_indice == row_key:
-                possible_cols[self.col_indices[i]] = i
+        index = self.__search_position(row_key, col_key)
 
-        if col_key not in possible_cols:
+        if index < 0 or len(self.indices) < index or self.indices[index - 1] != col_key:
             return 0
-        return self.values[possible_cols[col_key]]
+        else:
+            try:
+                return self.data[index - 1]
+            except IndexError:
+                pass
 
-    def sparse_index(self, row_key, col_key) -> int:
-        if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
-            raise KeyError("Index out of range")
+    def __search_position(self, row: int, col: int):
+        left = self.indptr[row - 1]
+        right = self.indptr[row]
 
-        possible_cols = {}
-        for i, row_indice in enumerate(self.row_indices):
-            if row_indice == row_key:
-                possible_cols[self.col_indices[i]] = i
+        if left >= right or not self.indices:
+            return -left
 
-        if col_key not in possible_cols:
-            return -1
-        return possible_cols[col_key]
+        while right - left > 1:
+            mid = (left + right) // 2
 
-    def __setitem__(self, key: tp.Tuple[int, int], value: numeric) -> None:
-        """
-        Задать строку матрицы явно
-        :param key:
-        :param value:
-        :return:
-        """
+            if self.indices[mid - 1] > col:
+                right = mid
+            else:
+                left = mid
+
+        return left
+
+    def __setitem__(self, key: tp.Tuple[int, int], value: numeric):
         row_key, col_key = key
 
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        index = self.sparse_index(row_key, col_key)
+        if value == 0:
+            return
 
-        if index == -1:
-            if value == 0:
-                return
+        index = self.__search_position(row_key, col_key)
 
-            self.row_indices.append(row_key)
-            self.col_indices.append(col_key)
-            self.values.append(value)
+        if index < 0 or len(self.indices) <= index or self.indices[index] != col_key:
+            self.data.insert(abs(index), value)
+            self.indices.insert(abs(index), col_key)
+            for i in range(row_key, self.shape[0] + 1):
+                self.indptr[i] += 1
         else:
-            if value == 0:
-                self.row_indices.pop(index)
-                self.col_indices.pop(index)
-                self.values.pop(index)
-                return
-
-            self.values[index] = value
+            self.data[index] = value
 
     def __str__(self) -> str:
         """
@@ -105,9 +100,32 @@ class Matrix:
 
         matrix_sum = Matrix(self.shape[0], self.shape[1])
 
-        for i in range(1, other.shape[0] + 1):
-            for j in range(1, other.shape[1] + 1):
-                matrix_sum[i, j] = self[i, j] + other[i, j]
+        for i in range(1, self.shape[0] + 1):
+            start_a, end_a = self.indptr[i - 1], self.indptr[i]
+            start_b, end_b = other.indptr[i - 1], other.indptr[i]
+
+            pos_a, pos_b = start_a, start_b
+
+            while pos_a < end_a or pos_b < end_b:
+                if pos_a < end_a and (pos_b >= end_b or self.indices[pos_a - 1] < other.indices[pos_b - 1]):
+                    matrix_sum.indices.append(self.indices[pos_a - 1])
+                    matrix_sum.data.append(self.data[pos_a - 1])
+                    for row_indptr in range(i, self.shape[0] + 1):
+                        matrix_sum.indptr[row_indptr] += 1
+                    pos_a += 1
+                elif pos_b < end_b and (pos_a >= end_a or other.indices[pos_b - 1] < self.indices[pos_a - 1]):
+                    matrix_sum.indices.append(other.indices[pos_b - 1])
+                    matrix_sum.data.append(other.data[pos_b - 1])
+                    for row_indptr in range(i, self.shape[0] + 1):
+                        matrix_sum.indptr[row_indptr] += 1
+                    pos_b += 1
+                else:
+                    matrix_sum.indices.append(other.indices[pos_b - 1])
+                    matrix_sum.data.append(other.data[pos_b - 1] + self.data[pos_a - 1])
+                    for row_indptr in range(i, self.shape[0] + 1):
+                        matrix_sum.indptr[row_indptr] += 1
+                    pos_b += 1
+                    pos_a += 1
 
         return matrix_sum
 
@@ -117,8 +135,9 @@ class Matrix:
         """
         new_matrix = Matrix(self.shape[0], self.shape[1])
 
-        for i in range(len(self.values)):
-            new_matrix[self.row_indices[i], self.col_indices[i]] = -self.values[i]
+        for i in range(1, self.shape[0] + 1):
+            for j in range(1, self.shape[1] + 1):
+                new_matrix[i, j] = -self[i, j]
 
         return new_matrix
 
@@ -153,16 +172,56 @@ class Matrix:
         if self.shape[1] != other.shape[0]:
             raise Exception("Количество столбцов первой матрицы должно совпадать с количеством строк второй")
 
-        multiplied_matrix = Matrix(self.shape[0], self.shape[1])
+        multiplied_matrix = Matrix(self.shape[0], other.shape[1])
 
-        for row_index_first_matrix in range(1, self.shape[0] + 1):
-            for col_index_second_matrix in range(1, other.shape[1] + 1):
-                for multiply_index in range(1, self.shape[1] + 1):
-                    multiplied_matrix[row_index_first_matrix, col_index_second_matrix] += (
-                            self[row_index_first_matrix, multiply_index] * other[multiply_index,
-                    col_index_second_matrix])
+        m, k = self.shape
+        _, n = other.shape
+
+        for i in range(1, m + 1):
+            start_a, end_a = self.indptr[i - 1], self.indptr[i]
+
+            row_data = self.data[start_a - 1:end_a - 1]
+            row_indices = self.indices[start_a - 1:end_a - 1]
+
+            result_row = {}
+            other_col_dict = other.build_column_dict()
+
+            for j in other_col_dict:
+                col_data, col_indices = other_col_dict[j]
+
+                dot_product = 0
+                a_idx, b_idx = 0, 0
+
+                while a_idx < len(row_data) and b_idx < len(col_data):
+                    if row_indices[a_idx] == col_indices[b_idx]:
+                        dot_product += row_data[a_idx] * col_data[b_idx]
+                        a_idx += 1
+                        b_idx += 1
+                    elif row_indices[a_idx] < col_indices[b_idx]:
+                        a_idx += 1
+                    else:
+                        b_idx += 1
+
+                if dot_product != 0:
+                    result_row[j] = dot_product
+
+            multiplied_matrix.indices.extend([idx for idx in sorted(result_row)])
+            multiplied_matrix.data.extend([result_row[idx] for idx in sorted(result_row)])
+            for row_indptr in range(i, self.shape[0] + 1):
+                multiplied_matrix.indptr[row_indptr] += len(result_row)
 
         return multiplied_matrix
+
+    def build_column_dict(self):
+        col_dict = {}
+        for row in range(1, self.shape[0] + 1):
+            start, end = self.indptr[row - 1], self.indptr[row]
+            for idx, value in zip(self.indices[start - 1: end - 1], self.data[start - 1: end - 1]):
+                if idx not in col_dict:
+                    col_dict[idx] = ([], [])
+                col_dict[idx][0].append(value)
+                col_dict[idx][1].append(row)
+        return col_dict
 
     def __mul__(self, other) -> 'Matrix':
         """
