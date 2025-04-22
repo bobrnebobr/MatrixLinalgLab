@@ -14,10 +14,9 @@ class Matrix:
         :param m: количество столбцов
         """
         self.shape = (n, m)
-
         self.data = []
         self.indices = []
-        self.indptr = [1 for _ in range(self.shape[0] + 1)]
+        self.indptr = [0] * (self.shape[0] + 1)  # Начинаем с 0
 
     def __getitem__(self, key: tp.Tuple[int, int]) -> numeric:
         """
@@ -31,32 +30,20 @@ class Matrix:
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        index = self.__search_position(row_key, col_key)
+        start = self.indptr[row_key - 1]
+        end = self.indptr[row_key]
 
-        if index < 0 or len(self.indices) < index or self.indices[index - 1] != col_key:
-            return 0
-        else:
-            try:
-                return self.data[index - 1]
-            except IndexError:
-                pass
-
-    def __search_position(self, row: int, col: int):
-        left = self.indptr[row - 1]
-        right = self.indptr[row]
-
-        if left >= right or not self.indices:
-            return -left
-
-        while right - left > 1:
+        left, right = start, end
+        while left < right:
             mid = (left + right) // 2
-
-            if self.indices[mid - 1] > col:
-                right = mid
+            if self.indices[mid] == col_key:
+                return self.data[mid]
+            elif self.indices[mid] < col_key:
+                left = mid + 1
             else:
-                left = mid
+                right = mid
 
-        return left
+        return 0
 
     def __setitem__(self, key: tp.Tuple[int, int], value: numeric):
         """
@@ -67,29 +54,36 @@ class Matrix:
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        index = self.__search_position(row_key, col_key)
+        start = self.indptr[row_key - 1]
+        end = self.indptr[row_key]
 
-        check_pos = (index - 1) if index > 0 else abs(index) - 1
-        element_exists = (0 <= check_pos < len(self.indices)) and (self.indices[check_pos] == col_key)
+        left, right = start, end
+        pos = start
+        while left < right:
+            mid = (left + right) // 2
+            if self.indices[mid] == col_key:
+                if value != 0:
+                    #обнова текущего значения
+                    self.data[mid] = value
+                else:
+                    #удаляем элемент
+                    del self.data[mid]
+                    del self.indices[mid]
+                    for i in range(row_key, len(self.indptr)):
+                        self.indptr[i] -= 1
+                return
+            elif self.indices[mid] < col_key:
+                left = mid + 1
+            else:
+                right = mid
+        pos = left
 
         if value != 0:
-            if element_exists:
-                #обнова значения
-                self.data[check_pos] = value
-            else:
-                #вставка нового
-                insert_pos = abs(index) - 1
-                self.data.insert(insert_pos, value)
-                self.indices.insert(insert_pos, col_key)
-                for i in range(row_key, len(self.indptr)):
-                    self.indptr[i] += 1
-        else:
-            if element_exists:
-                #удаляем существующий
-                del self.data[check_pos]
-                del self.indices[check_pos]
-                for i in range(row_key, len(self.indptr)):
-                    self.indptr[i] -= 1
+            #вставляем новый элемент
+            self.data.insert(pos, value)
+            self.indices.insert(pos, col_key)
+            for i in range(row_key, len(self.indptr)):
+                self.indptr[i] += 1
 
     def __str__(self) -> str:
         """
@@ -100,7 +94,6 @@ class Matrix:
             result.append([])
             for j in range(1, self.shape[1] + 1):
                 result[-1].append(str(self[i, j]))
-
         return "\n".join(["\t".join(row) for row in result])
 
     def __add__(self, other: 'Matrix') -> 'Matrix':

@@ -19,7 +19,6 @@ def gauss_solver(A: 'Matrix', b: 'Matrix')-> List['Matrix']:
         raise ValueError('Матрица и вектор несовместимы')
 
     n = A.shape[0]
-
     #расширенная матрица [A|b]
     augmented = Matrix(n, n+1)
     for i in range(1, n+1):
@@ -28,6 +27,9 @@ def gauss_solver(A: 'Matrix', b: 'Matrix')-> List['Matrix']:
             augmented[i, j] = A[i, j]
         #из b
         augmented[i, n+1] = b[i, 1]
+
+    #print(augmented)
+
 
     #приведение к ступенчатому виду
     cur_row = 1
@@ -52,20 +54,31 @@ def gauss_solver(A: 'Matrix', b: 'Matrix')-> List['Matrix']:
                 augmented[cur_row, j] = augmented[max_row, j]
                 augmented[max_row, j] = temp
 
+        #print(augmented)
+
         #нормирую строку (делю на ведущий элемент)
         pivot_el = augmented[cur_row, col]
         for j in range(col, n+2):
             augmented[cur_row, j] /= pivot_el
 
+        #print(augmented)
         #вычитаю строку из других
         for row in range(1, n + 1):
             if row != cur_row:
                 multiplier = augmented[row, col]
-                for j in range(col, n+2):
-                    augmented[row, j] -= multiplier*augmented[cur_row, j]
+                for j in range(1, n+2):
+                    # print("multiplier", multiplier)
+                    # print(augmented[cur_row, j])
+                    # print("matrix[", j, "]", augmented[row, j])
+                    a = augmented[row, j] - multiplier * augmented[cur_row, j]
+                    #print("a", a)
+                    augmented[row, j] = a
+                    # print("matrix[", j, "] after changes ", augmented[row, j])
+                #print(augmented)
 
         cur_row += 1
 
+    # print(augmented)
     #надо учесть случай, когда [0, ..., 0 | c], где c != 0
     for row in range(cur_row, n + 1):
         if abs(augmented[row, n + 1]) > 1e-10:
