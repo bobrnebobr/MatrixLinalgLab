@@ -59,23 +59,37 @@ class Matrix:
         return left
 
     def __setitem__(self, key: tp.Tuple[int, int], value: numeric):
+        """
+        Присваивание значений в матрице
+        """
         row_key, col_key = key
 
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        if value == 0:
-            return
-
         index = self.__search_position(row_key, col_key)
 
-        if index < 0 or len(self.indices) <= index or self.indices[index] != col_key:
-            self.data.insert(abs(index), value)
-            self.indices.insert(abs(index), col_key)
-            for i in range(row_key, self.shape[0] + 1):
-                self.indptr[i] += 1
+        check_pos = (index - 1) if index > 0 else abs(index) - 1
+        element_exists = (0 <= check_pos < len(self.indices)) and (self.indices[check_pos] == col_key)
+
+        if value != 0:
+            if element_exists:
+                #обнова значения
+                self.data[check_pos] = value
+            else:
+                #вставка нового
+                insert_pos = abs(index) - 1
+                self.data.insert(insert_pos, value)
+                self.indices.insert(insert_pos, col_key)
+                for i in range(row_key, len(self.indptr)):
+                    self.indptr[i] += 1
         else:
-            self.data[index] = value
+            if element_exists:
+                #удаляем существующий
+                del self.data[check_pos]
+                del self.indices[check_pos]
+                for i in range(row_key, len(self.indptr)):
+                    self.indptr[i] -= 1
 
     def __str__(self) -> str:
         """
