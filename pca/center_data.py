@@ -1,7 +1,8 @@
 from matrix import Matrix
+from typing import Tuple, List
 
 
-def center_data(X: 'Matrix') -> 'Matrix':
+def center_data(X: 'Matrix') -> Tuple['Matrix', List[float]]:
     """
  Вход: матрица данных X (n×m)
  Выход: центрированная матрица X_centered (n×m)
@@ -24,4 +25,4 @@ def center_data(X: 'Matrix') -> 'Matrix':
             mean_val_col = colum_means[col-1]
             X_centered[row, col] = tek_val - mean_val_col
 
-    return X_centered
+    return X_centered, colum_means

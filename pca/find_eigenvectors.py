@@ -33,7 +33,7 @@ def gram_schmidt(eigen_pairs: List[Tuple[Matrix, float]]) -> List[Tuple[Matrix, 
 
     return ortho_pairs
 
-def find_eigenvectors(C: 'Matrix', eigenvalues: List[float]) -> List['Matrix']:
+def find_eigenvectors(C: 'Matrix', eigenvalues: List[float]) -> List[Tuple[Matrix, float]]:
     """
     Находит собственные векторы матрицы C для заданных собственных значений.
 

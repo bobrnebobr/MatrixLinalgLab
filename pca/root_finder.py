@@ -1,6 +1,3 @@
-import numpy as np
-import sympy as sp
-
 class RootFinder:
     def __init__(self, function):
         self.function = function

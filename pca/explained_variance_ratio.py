@@ -8,7 +8,5 @@ def explained_variance_ratio(eigenvalues: List[float], k: int) -> float:
     k: число компонент
     Выход: доля объяснённой дисперсии
     """
-
-
-
-pass
+    eigenvalues.sort(key=int, reverse=True)
+    return sum(eigenvalues[:k]) / sum(eigenvalues)

@@ -187,8 +187,8 @@ class Matrix:
         for i in range(1, m + 1):
             start_a, end_a = self.indptr[i - 1], self.indptr[i]
 
-            row_data = self.data[start_a - 1:end_a - 1]
-            row_indices = self.indices[start_a - 1:end_a - 1]
+            row_data = self.data[start_a:end_a]
+            row_indices = self.indices[start_a:end_a]
 
             result_row = {}
             other_col_dict = other.build_column_dict()
@@ -223,7 +223,7 @@ class Matrix:
         col_dict = {}
         for row in range(1, self.shape[0] + 1):
             start, end = self.indptr[row - 1], self.indptr[row]
-            for idx, value in zip(self.indices[start - 1: end - 1], self.data[start - 1: end - 1]):
+            for idx, value in zip(self.indices[start: end], self.data[start: end]):
                 if idx not in col_dict:
                     col_dict[idx] = ([], [])
                 col_dict[idx][0].append(value)
