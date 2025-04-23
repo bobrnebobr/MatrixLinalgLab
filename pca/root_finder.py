@@ -1,3 +1,6 @@
+import numpy as np
+import sympy as sp
+
 class RootFinder:
     def __init__(self, function):
         self.function = function
@@ -58,6 +61,10 @@ class RootFinder:
 
         return roots, total_iterations
 
+def create_function(func_str):
+    x = sp.symbols('x')
+    func_expr = sp.sympify(func_str)
+    return sp.lambdify(x, func_expr)
 
 # Ввод функции и отрезка пользователем
 # func_input = input("Введите функцию от x (например, x**3 - 6*x**2 + 11*x - 6): ")

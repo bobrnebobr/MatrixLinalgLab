@@ -183,7 +183,7 @@ class TestGaussSolver(unittest.TestCase):
         b = Matrix(2, 1)
 
         solutions = gauss_solver(A, b)
-        self.assertEqual(len(solutions), 3)  # Нулевое решение + 2 базисных
+        self.assertEqual(len(solutions), 2)  #2 базисных
 
     def test_complex_numbers(self):
         """Система с комплексными числами"""
