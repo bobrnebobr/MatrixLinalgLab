@@ -98,43 +98,43 @@ class Matrix:
 
     def __add__(self, other: 'Matrix') -> 'Matrix':
         """
-        Сложение матриц
-        :param other: Матрица той же размерности, иначе будет вызвана ошибка
-        :return: матрица суммы
+        Сложение двух разреженных матриц в формате CSR.
+        :param other: Матрица той же размерности.
+        :return: Новая матрица, представляющая сумму self и other.
         """
-        if self.shape[0] != other.shape[0] or self.shape[1] != other.shape[1]:
-            raise Exception("Матрицы должны быть одного размера")
+        if self.shape != other.shape:
+            raise ValueError("Матрицы должны быть одного размера")
 
-        matrix_sum = Matrix(self.shape[0], self.shape[1])
+        result = Matrix(self.shape[0], self.shape[1])
+        result.indptr = [0]
 
-        for i in range(1, self.shape[0] + 1):
-            start_a, end_a = self.indptr[i - 1], self.indptr[i]
-            start_b, end_b = other.indptr[i - 1], other.indptr[i]
+        for row in range(self.shape[0]):
+            row_data = {}
+            # Обработка текущей строки из self
+            for idx in range(self.indptr[row], self.indptr[row + 1]):
+                col = self.indices[idx]
+                val = self.data[idx]
+                row_data[col] = val
 
-            pos_a, pos_b = start_a, start_b
-
-            while pos_a < end_a or pos_b < end_b:
-                if pos_a < end_a and (pos_b >= end_b or self.indices[pos_a - 1] < other.indices[pos_b - 1]):
-                    matrix_sum.indices.append(self.indices[pos_a - 1])
-                    matrix_sum.data.append(self.data[pos_a - 1])
-                    for row_indptr in range(i, self.shape[0] + 1):
-                        matrix_sum.indptr[row_indptr] += 1
-                    pos_a += 1
-                elif pos_b < end_b and (pos_a >= end_a or other.indices[pos_b - 1] < self.indices[pos_a - 1]):
-                    matrix_sum.indices.append(other.indices[pos_b - 1])
-                    matrix_sum.data.append(other.data[pos_b - 1])
-                    for row_indptr in range(i, self.shape[0] + 1):
-                        matrix_sum.indptr[row_indptr] += 1
-                    pos_b += 1
+            # Обработка текущей строки из other
+            for idx in range(other.indptr[row], other.indptr[row + 1]):
+                col = other.indices[idx]
+                val = other.data[idx]
+                if col in row_data:
+                    row_data[col] += val
                 else:
-                    matrix_sum.indices.append(other.indices[pos_b - 1])
-                    matrix_sum.data.append(other.data[pos_b - 1] + self.data[pos_a - 1])
-                    for row_indptr in range(i, self.shape[0] + 1):
-                        matrix_sum.indptr[row_indptr] += 1
-                    pos_b += 1
-                    pos_a += 1
+                    row_data[col] = val
 
-        return matrix_sum
+            # Сортировка по столбцам для поддержания порядка
+            sorted_cols = sorted(row_data.keys())
+            for col in sorted_cols:
+                val = row_data[col]
+                if val != 0:
+                    result.indices.append(col)
+                    result.data.append(val)
+            result.indptr.append(len(result.data))
+
+        return result
 
     def __neg__(self) -> 'Matrix':
         """

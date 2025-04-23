@@ -2,11 +2,13 @@ from matrix import *
 
 if __name__ == '__main__':
     matrix = input_matrix()
+    matrix2 = input_matrix()
 
-    print(-matrix)
+    print(matrix - matrix2)
     print("-----------")
     print(matrix)
     print("-----------")
+
     # print(matrix[1, 2])
     # print("-----------")
     # print(matrix[3, 2])

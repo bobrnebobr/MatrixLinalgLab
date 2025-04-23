@@ -29,7 +29,6 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
                 else:
                     C_minus_lambd_E[i, j] = C[i, j]
         det = calculate_determinant(C_minus_lambd_E)
-        print(C_minus_lambd_E)
         return det
 
     root_finder = RootFinder(charact_polynom)
