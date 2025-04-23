@@ -29,6 +29,7 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
                 else:
                     C_minus_lambd_E[i, j] = C[i, j]
         det = calculate_determinant(C_minus_lambd_E)
+        # print(C_minus_lambd_E)
         return det
 
     root_finder = RootFinder(charact_polynom)
@@ -38,20 +39,21 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
 
     intervals = []
     #проверочка на границы
-    x = min_val
+    x = min_val - step / 2
+    x_next = x + step
     prev_val = charact_polynom(x)
 
-    for _ in range(n_intervals):
-        x_next = x + step
+    eigenvalues = []
+
+    for _ in range(2 * n_intervals + 1):
         curr_val = charact_polynom(x_next)
 
         if prev_val*curr_val <= 0 or abs(prev_val) < tol:
             intervals.append((x, x_next))
-        x = x_next
+        x = x + step / 2
+        x_next = x_next + step / 2
         prev_val = curr_val
 
-
-    eigenvalues = []
     for a, b in intervals:
         root, _ = root_finder.bisection(a, b, tol)
         if root is not None:
