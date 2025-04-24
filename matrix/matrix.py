@@ -281,3 +281,10 @@ class Matrix:
                         new_matrix[i - 1, j - 1] = self[i, j]
 
         return new_matrix
+
+    def transpose(self):
+        new_matrix = Matrix(self.shape[1], self.shape[0])
+        for i in range(1, self.shape[0] + 1):
+            for j in range(1, self.shape[1] + 1):
+                new_matrix[j, i] = self[i, j]
+        return new_matrix
