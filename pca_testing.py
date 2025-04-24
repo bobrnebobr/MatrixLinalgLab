@@ -1,16 +1,10 @@
-from pca.pca import pca
+from pca.pca import pca, reconstruct_X, reconstruction_error
 from pca.plot_pca_solver import plot_pca_projection
 from matrix import *
 
 matrix = input_matrix()
 
-results = pca(matrix, 2)
-
-print(results[0])
-print("\n")
-print(results[1])
-print("\n")
-print(results[2])
-print("\n")
-fig = plot_pca_projection(results[0])
-fig.show()
+results = pca(matrix, 1)
+X_recon = reconstruct_X(results)
+print(X_recon)
+print(reconstruction_error(matrix, X_recon))
