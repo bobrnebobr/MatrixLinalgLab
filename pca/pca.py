@@ -22,7 +22,7 @@ class PCA_DATA:
             setattr(self, key, value)
 
 
-def pca(X: Matrix, k: int) ->  PCA_DATA:
+def pca(X: Matrix, k: int, show_logs=True) ->  PCA_DATA:
     """
     Вход:
     X: матрица данных (n×m)
@@ -33,10 +33,17 @@ def pca(X: Matrix, k: int) ->  PCA_DATA:
     """
     n, m = X.shape
     centered_data, mean_columns = center_data(X)
+    if show_logs:
+        print("Отцентрированы данные...")
     cov_matrix = covariance_matrix(centered_data)
-
+    if show_logs:
+        print("Найдена матрица ковариаций...")
     eigenvalues = find_eigenvalues(cov_matrix)
+    if show_logs:
+        print("Найдены собственные значения")
     eigenvectors = find_eigenvectors(cov_matrix, eigenvalues)
+    if show_logs:
+        print("Найдены собственные векторы")
 
     eigenvectors = list(sorted(eigenvectors, key=lambda x: x[1], reverse=True))
 
@@ -49,7 +56,11 @@ def pca(X: Matrix, k: int) ->  PCA_DATA:
             eigenvectors_matrix[j + 1, i + 1] = eigenvectors[i][j + 1, 1]
 
     X_proj = centered_data * eigenvectors_matrix
+    if show_logs:
+        print("Найдена проекция...")
     variance = explained_variance_ratio(eigenvalues, k)
+    if show_logs:
+        print("найдена дисперсия...\n")
 
     pca_data = PCA_DATA(
         mean_columns=mean_columns,

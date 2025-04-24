@@ -47,9 +47,8 @@ def find_eigenvectors(C: 'Matrix', eigenvalues: List[float]) -> List[Tuple[Matri
     eigen_pairs = []
 
     for lambda_ in eigenvalues:
-        # Создаем матрицу (C - λI)
         A = Matrix(m, m)
-        b = Matrix(m, 1)  # Нулевой вектор правой части
+        b = Matrix(m, 1)
 
         for i in range(1, m + 1):
             for j in range(1, m + 1):
@@ -58,7 +57,6 @@ def find_eigenvectors(C: 'Matrix', eigenvalues: List[float]) -> List[Tuple[Matri
                 else:
                     A[i, j] = C[i, j]
 
-        # Решаем систему (C - λI)v = 0
         solutions = gauss_solver(A, b)
 
         if solutions:

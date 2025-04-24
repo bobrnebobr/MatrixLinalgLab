@@ -21,7 +21,7 @@ class TestCenterData(unittest.TestCase):
         expected[3, 1] = 2
         expected[3, 2] = 2
 
-        result = center_data(X)
+        result = center_data(X)[0]
         self.assertTrue(self.compare_matrices(expected, result))
 
     def test_already_centered(self):
@@ -32,7 +32,7 @@ class TestCenterData(unittest.TestCase):
         X[2, 1] = 1
         X[2, 2] = -1
 
-        result = center_data(X)
+        result = center_data(X)[0]
         self.assertTrue(self.compare_matrices(X, result))
 
     def test_single_row(self):
@@ -47,7 +47,7 @@ class TestCenterData(unittest.TestCase):
         expected[1, 2] = 0
         expected[1, 3] = 0
 
-        result = center_data(X)
+        result = center_data(X)[0]
         self.assertTrue(self.compare_matrices(expected, result))
 
     def test_zeros_matrix(self):
@@ -58,7 +58,7 @@ class TestCenterData(unittest.TestCase):
         X[2, 1] = 0
         X[2, 2] = 0
 
-        result = center_data(X)
+        result = center_data(X)[0]
         self.assertTrue(self.compare_matrices(X, result))
 
     def test_negative_values(self):
@@ -75,7 +75,7 @@ class TestCenterData(unittest.TestCase):
         expected[2, 1] = 2
         expected[2, 2] = 2
 
-        result = center_data(X)
+        result = center_data(X)[0]
         self.assertTrue(self.compare_matrices(expected, result))
 
     def test_non_integer_result(self):
@@ -88,7 +88,7 @@ class TestCenterData(unittest.TestCase):
         expected[1, 1] = -0.5
         expected[2, 1] = 0.5
 
-        result = center_data(X)
+        result = center_data(X)[0]
         self.assertTrue(self.compare_matrices(expected, result))
 
     def compare_matrices(self, m1: Matrix, m2: Matrix) -> bool:

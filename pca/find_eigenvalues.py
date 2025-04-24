@@ -34,7 +34,7 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
 
     root_finder = RootFinder(charact_polynom)
 
-    n_intervals = max(1000, 100*m) #количество интервалов для поиска
+    n_intervals = max(5000, 100*m) #количество интервалов для поиска
     step = (max_val - min_val) / n_intervals
 
     intervals = []
