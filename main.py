@@ -1,7 +1,11 @@
 from matrix import *
 
 if __name__ == '__main__':
-    matrix = input_matrix()
+    matrix1 = input_matrix()
+    matrix2 = input_matrix()
+    print(matrix1.build_column_dict())
+    print(matrix1 * matrix2)
+    print(matrix1 - matrix2)
 
     print(-matrix)
     print("-----------")

@@ -14,10 +14,9 @@ class Matrix:
         :param m: количество столбцов
         """
         self.shape = (n, m)
-
         self.data = []
         self.indices = []
-        self.indptr = [1 for _ in range(self.shape[0] + 1)]
+        self.indptr = [0] * (self.shape[0] + 1)  # Начинаем с 0
 
     def __getitem__(self, key: tp.Tuple[int, int]) -> numeric:
         """
@@ -31,51 +30,60 @@ class Matrix:
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        index = self.__search_position(row_key, col_key)
+        start = self.indptr[row_key - 1]
+        end = self.indptr[row_key]
 
-        if index < 0 or len(self.indices) < index or self.indices[index - 1] != col_key:
-            return 0
-        else:
-            try:
-                return self.data[index - 1]
-            except IndexError:
-                pass
-
-    def __search_position(self, row: int, col: int):
-        left = self.indptr[row - 1]
-        right = self.indptr[row]
-
-        if left >= right or not self.indices:
-            return -left
-
-        while right - left > 1:
+        left, right = start, end
+        while left < right:
             mid = (left + right) // 2
-
-            if self.indices[mid - 1] > col:
-                right = mid
+            if self.indices[mid] == col_key:
+                return self.data[mid]
+            elif self.indices[mid] < col_key:
+                left = mid + 1
             else:
-                left = mid
+                right = mid
 
-        return left
+        return 0
 
     def __setitem__(self, key: tp.Tuple[int, int], value: numeric):
+        """
+        Присваивание значений в матрице
+        """
         row_key, col_key = key
 
         if row_key <= 0 or col_key <= 0 or row_key > self.shape[0] or col_key > self.shape[1]:
             raise KeyError("Index out of range")
 
-        if value == 0:
-            return
+        start = self.indptr[row_key - 1]
+        end = self.indptr[row_key]
 
-        index = self.__search_position(row_key, col_key)
+        left, right = start, end
+        pos = start
+        while left < right:
+            mid = (left + right) // 2
+            if self.indices[mid] == col_key:
+                if value != 0:
+                    #обнова текущего значения
+                    self.data[mid] = value
+                else:
+                    #удаляем элемент
+                    del self.data[mid]
+                    del self.indices[mid]
+                    for i in range(row_key, len(self.indptr)):
+                        self.indptr[i] -= 1
+                return
+            elif self.indices[mid] < col_key:
+                left = mid + 1
+            else:
+                right = mid
+        pos = left
 
-        if index < 0 or len(self.indices) <= index or self.indices[index] != col_key:
-            self.data.insert(abs(index), value)
-            self.indices.insert(abs(index), col_key)
-            for i in range(row_key, self.shape[0] + 1):
+        if value != 0:
+            #вставляем новый элемент
+            self.data.insert(pos, value)
+            self.indices.insert(pos, col_key)
+            for i in range(row_key, len(self.indptr)):
                 self.indptr[i] += 1
-        else:
-            self.data[index] = value
 
     def __str__(self) -> str:
         """
@@ -86,48 +94,47 @@ class Matrix:
             result.append([])
             for j in range(1, self.shape[1] + 1):
                 result[-1].append(str(self[i, j]))
-
         return "\n".join(["\t".join(row) for row in result])
 
     def __add__(self, other: 'Matrix') -> 'Matrix':
         """
-        Сложение матриц
-        :param other: Матрица той же размерности, иначе будет вызвана ошибка
-        :return: матрица суммы
+        Сложение двух разреженных матриц в формате CSR.
+        :param other: Матрица той же размерности.
+        :return: Новая матрица, представляющая сумму self и other.
         """
-        if self.shape[0] != other.shape[0] or self.shape[1] != other.shape[1]:
-            raise Exception("Матрицы должны быть одного размера")
+        if self.shape != other.shape:
+            raise ValueError("Матрицы должны быть одного размера")
 
-        matrix_sum = Matrix(self.shape[0], self.shape[1])
+        result = Matrix(self.shape[0], self.shape[1])
+        result.indptr = [0]
 
-        for i in range(1, self.shape[0] + 1):
-            start_a, end_a = self.indptr[i - 1], self.indptr[i]
-            start_b, end_b = other.indptr[i - 1], other.indptr[i]
+        for row in range(self.shape[0]):
+            row_data = {}
+            # Обработка текущей строки из self
+            for idx in range(self.indptr[row], self.indptr[row + 1]):
+                col = self.indices[idx]
+                val = self.data[idx]
+                row_data[col] = val
 
-            pos_a, pos_b = start_a, start_b
-
-            while pos_a < end_a or pos_b < end_b:
-                if pos_a < end_a and (pos_b >= end_b or self.indices[pos_a - 1] < other.indices[pos_b - 1]):
-                    matrix_sum.indices.append(self.indices[pos_a - 1])
-                    matrix_sum.data.append(self.data[pos_a - 1])
-                    for row_indptr in range(i, self.shape[0] + 1):
-                        matrix_sum.indptr[row_indptr] += 1
-                    pos_a += 1
-                elif pos_b < end_b and (pos_a >= end_a or other.indices[pos_b - 1] < self.indices[pos_a - 1]):
-                    matrix_sum.indices.append(other.indices[pos_b - 1])
-                    matrix_sum.data.append(other.data[pos_b - 1])
-                    for row_indptr in range(i, self.shape[0] + 1):
-                        matrix_sum.indptr[row_indptr] += 1
-                    pos_b += 1
+            # Обработка текущей строки из other
+            for idx in range(other.indptr[row], other.indptr[row + 1]):
+                col = other.indices[idx]
+                val = other.data[idx]
+                if col in row_data:
+                    row_data[col] += val
                 else:
-                    matrix_sum.indices.append(other.indices[pos_b - 1])
-                    matrix_sum.data.append(other.data[pos_b - 1] + self.data[pos_a - 1])
-                    for row_indptr in range(i, self.shape[0] + 1):
-                        matrix_sum.indptr[row_indptr] += 1
-                    pos_b += 1
-                    pos_a += 1
+                    row_data[col] = val
 
-        return matrix_sum
+            # Сортировка по столбцам для поддержания порядка
+            sorted_cols = sorted(row_data.keys())
+            for col in sorted_cols:
+                val = row_data[col]
+                if val != 0:
+                    result.indices.append(col)
+                    result.data.append(val)
+            result.indptr.append(len(result.data))
+
+        return result
 
     def __neg__(self) -> 'Matrix':
         """
@@ -180,8 +187,8 @@ class Matrix:
         for i in range(1, m + 1):
             start_a, end_a = self.indptr[i - 1], self.indptr[i]
 
-            row_data = self.data[start_a - 1:end_a - 1]
-            row_indices = self.indices[start_a - 1:end_a - 1]
+            row_data = self.data[start_a:end_a]
+            row_indices = self.indices[start_a:end_a]
 
             result_row = {}
             other_col_dict = other.build_column_dict()
@@ -216,7 +223,7 @@ class Matrix:
         col_dict = {}
         for row in range(1, self.shape[0] + 1):
             start, end = self.indptr[row - 1], self.indptr[row]
-            for idx, value in zip(self.indices[start - 1: end - 1], self.data[start - 1: end - 1]):
+            for idx, value in zip(self.indices[start: end], self.data[start: end]):
                 if idx not in col_dict:
                     col_dict[idx] = ([], [])
                 col_dict[idx][0].append(value)
@@ -273,4 +280,11 @@ class Matrix:
                     else:
                         new_matrix[i - 1, j - 1] = self[i, j]
 
+        return new_matrix
+
+    def transpose(self):
+        new_matrix = Matrix(self.shape[1], self.shape[0])
+        for i in range(1, self.shape[0] + 1):
+            for j in range(1, self.shape[1] + 1):
+                new_matrix[j, i] = self[i, j]
         return new_matrix
