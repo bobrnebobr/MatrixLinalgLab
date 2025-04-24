@@ -20,6 +20,7 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
         min_val = min(min_val, center - r)
         max_val = max(max_val, center + r)
 
+    #задаём функцию для вычисления значения характеристического многочлена
     def charact_polynom(lambd):
         C_minus_lambd_E = Matrix(m, m)
         for i in range(1, m+1):
@@ -45,6 +46,7 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
 
     eigenvalues = []
 
+    #цикл с шагом step/2, чтобы не пропустить значения на границах отрезка с обычным шагом step
     for _ in range(2 * n_intervals + 1):
         curr_val = charact_polynom(x_next)
 
@@ -54,6 +56,7 @@ def find_eigenvalues(C: 'Matrix', tol: float = 1e-6)-> List[float]:
         x_next = x_next + step / 2
         prev_val = curr_val
 
+    #бисекция для интервалов
     for a, b in intervals:
         root, _ = root_finder.bisection(a, b, tol)
         if root is not None:

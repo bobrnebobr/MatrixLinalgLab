@@ -11,20 +11,20 @@ def gram_schmidt(eigen_pairs: List[Tuple[Matrix, float]]) -> List[Tuple[Matrix, 
     ortho_pairs = []
 
     for v, lambda_ in eigen_pairs:
-        # Создаем копию вектора для ортогонализации
+        #cоздаем копию вектора для ортогонализации
         w = Matrix(v.shape[0], 1)
         for i in range(1, v.shape[0] + 1):
             w[i, 1] = v[i, 1]
 
-        # Вычитаем проекции на уже имеющиеся ортогональные векторы
+        #вычитаем проекции на уже имеющиеся ортогональные векторы
         for u, _ in ortho_pairs:
-            # Вычисляем скалярное произведение
+            #вычисляем скалярное произведение
             dot_product = sum(w[i, 1] * u[i, 1] for i in range(1, w.shape[0] + 1))
-            # Вычитаем проекцию
+            #вычитаем проекцию
             for i in range(1, w.shape[0] + 1):
                 w[i, 1] -= dot_product * u[i, 1]
 
-        # Нормализуем вектор
+        #нормализуем вектор
         norm = math.sqrt(sum(w[i, 1] ** 2 for i in range(1, w.shape[0] + 1)))
         if norm > 1e-10:
             for i in range(1, w.shape[0] + 1):
@@ -36,19 +36,18 @@ def gram_schmidt(eigen_pairs: List[Tuple[Matrix, float]]) -> List[Tuple[Matrix, 
 def find_eigenvectors(C: 'Matrix', eigenvalues: List[float]) -> List[Tuple[Matrix, float]]:
     """
     Находит собственные векторы матрицы C для заданных собственных значений.
-
     Вход:
     C: матрица ковариаций (m×m)
     eigenvalues: список собственных значений
-
     Выход: список собственных векторов (каждый вектор - объект Matrix размера m×1)
     """
     m = C.shape[0]
     eigen_pairs = []
 
     for lambda_ in eigenvalues:
+        #создаем матрицу (C - lambda*I)
         A = Matrix(m, m)
-        b = Matrix(m, 1)
+        b = Matrix(m, 1)  #нулевой вектор правой части
 
         for i in range(1, m + 1):
             for j in range(1, m + 1):
@@ -57,6 +56,7 @@ def find_eigenvectors(C: 'Matrix', eigenvalues: List[float]) -> List[Tuple[Matri
                 else:
                     A[i, j] = C[i, j]
 
+        #решаем систему (C - lambda*I)v = 0
         solutions = gauss_solver(A, b)
 
         if solutions:
